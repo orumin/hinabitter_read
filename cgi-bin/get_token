@@ -1,0 +1,72 @@
+#!/usr/bin/env python
+
+import cgi
+import json
+import requests
+from jinja2 import Environment, FileSystemLoader
+
+CONF_FILE = 'conf.json'
+TOKEN_FILE = 'token.json'
+TOKEN_URL = 'https://graph.facebook.com/oauth/access_token'
+ACCOUNT_URL = 'https://graph.facebook.com/me/accounts'
+TPL_DIR = './templates'
+TEMPLATE = 'get_token.html.j2'
+
+class TokenRetriever(object):
+
+    def __init__(self, code):
+        self.code = code
+        with open(CONF_FILE, 'r') as f:
+            self.conf = json.load(f)
+
+    def get_token(self):
+        user_access_token = self.__get_user_access_token()
+        token = {}
+        token['user_access'] = user_access_token
+        token_json = json.dumps({'token': token}, indent=2, sort_keys=True)
+        return token_json
+
+    def __get_user_access_token(self):
+        payload = {}
+        payload['client_id'] = self.conf['app']['app_id']
+        payload['client_secret'] = self.conf['app']['app_secret']
+        payload['redirect_uri'] = self.conf['app']['redirect_uri']
+        payload['code'] = self.code
+        m = requests.get(TOKEN_URL, params=payload).json()
+        if m:
+            return m
+        else:
+            raise LookupError('access_token does not exist')
+
+def main():
+    params = {}
+
+    try:
+        form = cgi.FieldStorage()
+        if not form.has_key('code'):
+            raise LookupError('QueryString "code" does not exist')
+
+        token_retriever = TokenRetriever(form['code'].value)
+        token_json = token_retriever.get_token()
+        with open(TOKEN_FILE, 'w') as f:
+            f.write(token_json)
+
+        params['isOK'] = True
+        params['token_file'] = TOKEN_FILE
+        params['token_json'] = token_json
+    except Exception as e:
+        params['isOK'] = False
+        params['error_type'] = type(e).__name__
+        params['error_title'] = str(e)
+
+    env = Environment(loader=FileSystemLoader(TPL_DIR, encoding='utf-8'))
+    tpl = env.get_template(TEMPLATE)
+    html = tpl.render(params)
+
+    print('Content-type: text/html; charset=utf-8')
+    print('\n')
+    print(html.encode('utf-8'))
+
+main()
+
+# vim: set filetype=python:

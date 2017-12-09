@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <title>index</title>
+  </head>
+  <body>
+  {% if isOK %}
+    <a href="{{ url }}">get token</a>
+  {% else %}
+    <b>An error has occured as below:</b>
+    [{{ error_type }}] {{ error_title}}
+  {% endif %}
+  </body>
+</html>
+
+<!-- vim: set filetype=html: -->

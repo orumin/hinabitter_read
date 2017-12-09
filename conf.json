@@ -1,0 +1,7 @@
+{
+  "app": {
+    "app_id": "",
+    "app_secret": "",
+    "redirect_uri": "http://localhost:8000/cgi-bin/get_token"
+  }
+}

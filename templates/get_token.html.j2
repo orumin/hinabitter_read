@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <title>get_token</title>
+  </head>
+  <body>
+  {% if isOK %}
+    We got <b>User Access Token</b> and <b>Page Access Token</b><br />
+    token has written out to {{ token_file }} in json form as below:
+    <pre>{{ token_json }}</pre>
+  {% else %}
+    <b>An error has occured as below:</b>
+    [{{ error_type }}] {{ error_title}}<br />
+    <a href="http://localhost:8000/cgi-bin/index">index</a>
+  {% endif %}
+  </body>
+</html>
+
+<!-- vim: set filetype=html: -->
