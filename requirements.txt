@@ -1,3 +1,5 @@
+pytz
+pycurl
 requests
 jinja2
 facebook-sdk

@@ -1,1 +1,6 @@
+*.pyc
 lib/*
+photos/*
+raw_data/*
+share/*
+hinabitter.txt

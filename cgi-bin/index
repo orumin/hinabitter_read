@@ -6,7 +6,7 @@ from jinja2 import Environment, FileSystemLoader
 
 CONF_FILE = 'conf.json'
 BASE_URL = 'https://www.facebook.com/dialog/oauth'
-SCOPE = 'user_posts'
+SCOPE = ''
 TPL_DIR = './templates'
 TEMPLATE = 'index.html.j2'
 
