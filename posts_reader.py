@@ -48,9 +48,9 @@ class PostsReader:
         
         try:
             for fname in [ "posts", "photos", "cover_photos", "profile_photos" ]:
-                pkl_file = open('raw_data/' + fname + '.pkl', 'rb')
-                self.alldata[fname]=pickle.load(pkl_file)
-                pkl_file.close()
+                with open('raw_data/' + fname + '.pkl', 'rb') as pkl_file:
+                    self.alldata[fname]=pickle.load(pkl_file)
+                    self.alldata[fname].reverse()
         except IOError:
             print("file cannot be opend.")
 
@@ -99,7 +99,7 @@ class PostsReader:
             self.indexes["posts"] += 1
 
             if entry.has_key("message"):
-                text = entry['message'].encode('utf-8').replace('\r\n', '\n') + '\n'
+                text = '　' + entry['message'].encode('utf-8').replace('\n', '\n　').replace('\r\n', '\n') + '\n'
                 if self.indexes['photos'] < len(self.alldata['photos']):
                     if entry['message'] == self.alldata["photos"][self.indexes["photos"]]['name']:
                         text += self.get_file_from_album("photos")

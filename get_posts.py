@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
+import sys
+import os.path
 import json
 import pickle
 import requests
@@ -9,15 +11,36 @@ import facebook
 
 TOKEN_JSON = 'token.json'
 
-def paging(data_array,data):
+def paging(fname):
+    data=[]
+    full_fname='raw_data/'+ fname +'.pkl'
+    if os.path.isfile(full_fname):
+        with open(full_fname, 'rb') as pkl_file:
+            data=pickle.load(pkl_file)
+    resp={}
+    if fname == "posts":
+        resp = graph.get_object('hinabitter/posts')
+    else:
+        resp = graph.get_object(album_id[fname] + '/photos')
+    new_data=[]
     while(True):
         try:
-            for entry in data_array['data']:
-                data.append(entry)
-            data_array=requests.get(data_array['paging']['next']).json()
+            for entry in resp['data']:
+                if not data:
+                    new_data.append(entry)
+                elif data[0]['id'] == entry['id']:
+                    raise KeyError('updated')
+                else:
+                    new_data.append(entry)
+            resp=requests.get(resp['paging']['next']).json()
         except KeyError:
             break
-    data.reverse()
+    if not new_data:
+        return
+    elif data:
+        new_data.extend(data)
+    with open(full_fname, 'wb') as f:
+        pickle.dump(new_data,f)
 
 user_access=""
 with open(TOKEN_JSON, 'r') as f:
@@ -25,38 +48,15 @@ with open(TOKEN_JSON, 'r') as f:
     
 graph = facebook.GraphAPI(user_access['access_token'])
 
-with open('raw_data/posts.pkl', 'wb') as f:
-    posts = graph.get_object('hinabitter/posts')
-    posts_data=[]
-    paging(posts,posts_data)
-    pickle.dump(posts_data,f)
-
 albums = graph.get_object('hinabitter/albums')
-album_timeline_id=""
-album_cover_id=""
-album_profile_id=""
+album_id = { "photos": "", "cover_photos": "", "profile_photos": "" }
 for entry in albums['data']:
     if entry['name'] == "Timeline Photos":
-        album_timeline_id = entry['id']
+        album_id["photos"] = entry['id']
     elif entry['name'] == "Cover Photos":
-        album_cover_id = entry['id']
+        album_id['cover_photos'] = entry['id']
     elif entry['name'] == "Profile Pictures":
-        album_profile_id = entry['id']
+        album_id['profile_photos'] = entry['id']
 
-with open('raw_data/photos.pkl', 'wb') as f:
-    photos = graph.get_object(album_timeline_id + '/photos')
-    photos_data=[]
-    paging(photos,photos_data)
-    pickle.dump(photos_data,f)
-
-with open('raw_data/cover_photos.pkl', 'wb') as f:
-    cover_photos = graph.get_object(album_cover_id + '/photos')
-    cover_photos_data=[]
-    paging(cover_photos,cover_photos_data)
-    pickle.dump(cover_photos_data,f)
-
-with open('raw_data/profile_photos.pkl', 'wb') as f:
-    profile_photos = graph.get_object(album_profile_id + '/photos')
-    profile_photos_data=[]
-    paging(profile_photos,profile_photos_data)
-    pickle.dump(profile_photos_data,f)
+for fname in ["posts", "photos", "cover_photos", "profile_photos"]:
+    paging(fname)
